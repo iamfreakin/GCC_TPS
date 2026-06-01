@@ -29,4 +29,7 @@ public:
 	// 스프링 암 컴포넌트 생성
 	UPROPERTY(VisibleAnywhere, Category = Camera)
 	class USpringArmComponent* SpringArm;
+	//카메라 컴포넌트
+	UPROPERTY(VisibleAnywhere, Category = Camera)
+	class UCameraComponent* FollowCamera;
 };

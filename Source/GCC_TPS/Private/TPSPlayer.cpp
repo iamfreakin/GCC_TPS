@@ -2,6 +2,8 @@
 
 
 #include "GCC_TPS/Public/TPSPlayer.h"
+
+#include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 
 
@@ -16,7 +18,10 @@ ATPSPlayer::ATPSPlayer()
 	SpringArm->SetupAttachment(RootComponent);
 	SpringArm->SetRelativeLocation(FVector(0.0f, 70.0f, 90.0f));
 	SpringArm->TargetArmLength = 400.0f;
-
+	
+	//카메라 컴포넌트
+	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComponent"));
+	FollowCamera->SetupAttachment(SpringArm);
 }
 
 // Called when the game starts or when spawned
