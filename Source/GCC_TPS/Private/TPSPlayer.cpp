@@ -63,6 +63,7 @@ void ATPSPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent
 		PlayerInput->BindAction(ia_LookUp, ETriggerEvent::Triggered, this, &ATPSPlayer::LookUp);
 		PlayerInput->BindAction(ia_Turn, ETriggerEvent::Triggered, this, &ATPSPlayer::Turn);
 		PlayerInput->BindAction(ia_Move, ETriggerEvent::Triggered, this, &ATPSPlayer::Move);
+		PlayerInput->BindAction(ia_Jump, ETriggerEvent::Started, this, &ATPSPlayer::InputJump);
 	}
 }
 
@@ -103,21 +104,9 @@ void ATPSPlayer::Move(const FInputActionValue& Value)
 
 	direction.X = value.X;
 	direction.Y = value.Y;
-	// FVector2D MovementVector = Value.Get<FVector2D>();
-	//
-	// if (Controller != nullptr)
-	// {
-	// 	// 1. 컨트롤러(카메라)의 회전값을 가져옵니다.
-	// 	const FRotator Rotation = Controller->GetControlRotation();
-	// 	// 2. 바닥 평면 이동을 위해 Pitch(상하)와 Roll을 제외하고 Yaw(좌우) 값만 땁니다.
-	// 	const FRotator YawRotation(0, Rotation.Yaw, 0);
-	//
-	// 	// 3. 카메라 Yaw 기준으로 진짜 '앞(Forward)'과 '오른쪽(Right)'이 어디인지 수학적으로 계산합니다.
-	// 	const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
-	// 	const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
-	//
-	// 	// 4. 계산된 월드 방향 벡터에 입력 축 값을 곱해 이동시킵니다.
-	// 	AddMovementInput(ForwardDirection, MovementVector.Y); // W, S 입력
-	// 	AddMovementInput(RightDirection, MovementVector.X);   // A, D 입력
-	// }
+}
+
+void ATPSPlayer::InputJump(const FInputActionValue& inputValue)
+{
+	Jump(); // ACharacter 클래스가 제공하는 기본 점프 함수 호출
 }

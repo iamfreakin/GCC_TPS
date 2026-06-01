@@ -26,6 +26,9 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	
+	//이동 방향
+	FVector direction;
+	
 	// 스프링 암 컴포넌트 생성
 	UPROPERTY(VisibleAnywhere, Category = Camera)
 	class USpringArmComponent* SpringArm;
@@ -57,8 +60,10 @@ public:
 	//이동 속도
 	UPROPERTY(EditDefaultsOnly, Category = PlayerSetting)
 	float walkSpeed = 600.f;
-    
-	//이동 방향
-	FVector direction;
+	
+	UPROPERTY(EditDefaultsOnly, Category="Input")
+	class UInputAction* ia_Jump;
+	
 	void Move(const struct FInputActionValue& inputValue);
+	void InputJump(const struct FInputActionValue& inputValue);
 };
