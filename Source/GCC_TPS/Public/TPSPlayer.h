@@ -32,4 +32,33 @@ public:
 	//카메라 컴포넌트
 	UPROPERTY(VisibleAnywhere, Category = Camera)
 	class UCameraComponent* FollowCamera;
+	
+	// IMC 선택 필드 선언
+	UPROPERTY(EditDefaultsOnly, Category="Input")
+	class UInputMappingContext* imc_TPS;
+
+	// 상하 회전 IA 필드 선언
+	UPROPERTY(EditDefaultsOnly, Category="Input")
+	class UInputAction* ia_LookUp;
+
+	// 좌우 회전 IA 필드 선언
+	UPROPERTY(EditDefaultsOnly, Category="Input")
+	class UInputAction* ia_Turn;
+
+	// 상하 회전 입력 함수 선언
+	void LookUp(const struct FInputActionValue& inputValue);
+
+	// 좌우 회전 입력 함수 선언
+	void Turn(const struct FInputActionValue& inputValue);
+	
+	UPROPERTY(EditDefaultsOnly, Category = Input)
+	class UInputAction* ia_Move;
+    
+	//이동 속도
+	UPROPERTY(EditDefaultsOnly, Category = PlayerSetting)
+	float walkSpeed = 600.f;
+    
+	//이동 방향
+	FVector direction;
+	void Move(const struct FInputActionValue& inputValue);
 };
