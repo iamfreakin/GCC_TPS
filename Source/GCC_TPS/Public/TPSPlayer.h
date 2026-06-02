@@ -28,6 +28,9 @@ protected:
 
     UPROPERTY(VisibleAnywhere, Category = GunMesh)
     class USkeletalMeshComponent* gunMeshComp;
+    
+    UPROPERTY(VisibleAnywhere, Category = GunMesh)
+    class UStaticMeshComponent* sniperGunComp;
 
     // ==================== 입력 (IMC / IA) ====================
 
@@ -68,4 +71,4 @@ protected:
     void LookUp(const struct FInputActionValue& inputValue);
     void Turn(const struct FInputActionValue& inputValue);
     void InputFire(const struct FInputActionValue& inputValue);
-};
+};  
