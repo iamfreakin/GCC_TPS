@@ -31,6 +31,9 @@ protected:
     
     UPROPERTY(VisibleAnywhere, Category = GunMesh)
     class UStaticMeshComponent* sniperGunComp;
+    
+    UPROPERTY()
+    class UUserWidget* sniperUI;
 
     // ==================== 입력 (IMC / IA) ====================
 
@@ -57,6 +60,9 @@ protected:
     
     UPROPERTY(EditDefaultsOnly, Category = Input)
     class UInputAction* ia_SniperGun;
+    
+    UPROPERTY(EditDefaultsOnly, Category = Input)
+    class UInputAction* ia_SniperZoom;
 
     // ==================== 플레이어 설정 ====================
 
@@ -65,11 +71,15 @@ protected:
 
     FVector direction;
     bool bUsingGrenadeGun = true;
+    bool bSniperZoom = false;
 
     // ==================== 팩토리 ====================
 
     UPROPERTY(EditDefaultsOnly, Category = BulletFactory)
     TSubclassOf<class ABullet> bulletFactory;
+    
+    UPROPERTY(EditDefaultsOnly, Category = SniperUI)
+    TSubclassOf<class UUserWidget> sniperUIFactory;
 
     // ==================== 입력 핸들러 ====================
 
@@ -80,4 +90,5 @@ protected:
     void InputFire(const struct FInputActionValue& inputValue);
     void ChangeToGrenadeGun(const struct FInputActionValue& inputValue);
     void ChangeToSniperGun(const struct FInputActionValue& inputValue);
+    void SniperZoom();
 };  

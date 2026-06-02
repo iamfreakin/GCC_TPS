@@ -6,6 +6,7 @@
 #include "Bullet.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "Blueprint/UserWidget.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
@@ -83,6 +84,9 @@ void ATPSPlayer::BeginPlay()
 			subsystem->AddMappingContext(imc_TPS, 0);
 		}
 	}
+	
+	// 스나이퍼 UI 위젯 인스턴스 생성 (화면에 보이기 위해서는 AddToViewport() 호출 시 등장)
+	sniperUI = CreateWidget(GetWorld(), sniperUIFactory);
 }
 
 void ATPSPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -99,6 +103,8 @@ void ATPSPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent
 		PlayerInput->BindAction(ia_Fire, ETriggerEvent::Started, this, &ATPSPlayer::InputFire);
 		PlayerInput->BindAction(ia_GrenadeGun, ETriggerEvent::Started, this, &ATPSPlayer::ChangeToGrenadeGun);
 		PlayerInput->BindAction(ia_SniperGun, ETriggerEvent::Started, this, &ATPSPlayer::ChangeToSniperGun);
+		PlayerInput->BindAction(ia_SniperZoom, ETriggerEvent::Started, this, &ATPSPlayer::SniperZoom);
+		// PlayerInput->BindAction(ia_SniperZoom, ETriggerEvent::Completed, this, &ATPSPlayer::SniperZoom); // 토글 방식 사용 시 주석
 	}
 }
 
@@ -173,4 +179,28 @@ void ATPSPlayer::ChangeToSniperGun(const FInputActionValue& inputValue)
 	// 스나이퍼 숨기고 / 유탄총 보이게
 	sniperGunComp->SetVisibility(true);
 	gunMeshComp->SetVisibility(false);
+}
+
+void ATPSPlayer::SniperZoom()
+{
+	// 스나이퍼 총이 아닐 때는 동작하지 않음
+	if (bUsingGrenadeGun)
+	{
+		return;
+	}
+
+	if (bSniperZoom == false)
+	{
+		// 키 누름 - 줌 모드에 진입
+		bSniperZoom = true;
+		sniperUI->AddToViewport(); // 조준경 UI 화면에 나타남
+		FollowCamera->SetFieldOfView(45.f); // FOV 시야각을 좁혀서 줌인 효과
+	}
+	else
+	{
+		// 키 해제 - 줌 모드에서 해제
+		bSniperZoom = false;
+		sniperUI->RemoveFromParent(); // 조준경 UI 제거
+		FollowCamera->SetFieldOfView(90.f); // FOX 시야각 복구
+	}
 }
