@@ -1,5 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #pragma once
 
 #include "CoreMinimal.h"
@@ -9,65 +7,65 @@
 UCLASS()
 class GCC_TPS_API ATPSPlayer : public ACharacter
 {
-	GENERATED_BODY()
+    GENERATED_BODY()
 
 public:
-	// Sets default values for this character's properties
-	ATPSPlayer();
+    ATPSPlayer();
+
+    virtual void Tick(float DeltaTime) override;
+    virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
+    virtual void BeginPlay() override;
 
-public:
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
+    // ==================== 컴포넌트 ====================
 
-	// Called to bind functionality to input
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-	
-	//이동 방향
-	FVector direction;
-	
-	// 스프링 암 컴포넌트 생성
-	UPROPERTY(VisibleAnywhere, Category = Camera)
-	class USpringArmComponent* SpringArm;
-	//카메라 컴포넌트
-	UPROPERTY(VisibleAnywhere, Category = Camera)
-	class UCameraComponent* FollowCamera;
-	
-	// 총 스켈레탈 메시 컴포넌트 선언
-	UPROPERTY(VisibleAnywhere, Category = GunMesh)
-	class USkeletalMeshComponent* gunMeshComp;
-	
-	// IMC 선택 필드 선언
-	UPROPERTY(EditDefaultsOnly, Category="Input")
-	class UInputMappingContext* imc_TPS;
+    UPROPERTY(VisibleAnywhere, Category = Camera)
+    class USpringArmComponent* SpringArm;
 
-	// 상하 회전 IA 필드 선언
-	UPROPERTY(EditDefaultsOnly, Category="Input")
-	class UInputAction* ia_LookUp;
+    UPROPERTY(VisibleAnywhere, Category = Camera)
+    class UCameraComponent* FollowCamera;
 
-	// 좌우 회전 IA 필드 선언
-	UPROPERTY(EditDefaultsOnly, Category="Input")
-	class UInputAction* ia_Turn;
+    UPROPERTY(VisibleAnywhere, Category = GunMesh)
+    class USkeletalMeshComponent* gunMeshComp;
 
-	// 상하 회전 입력 함수 선언
-	void LookUp(const struct FInputActionValue& inputValue);
+    // ==================== 입력 (IMC / IA) ====================
 
-	// 좌우 회전 입력 함수 선언
-	void Turn(const struct FInputActionValue& inputValue);
-	
-	UPROPERTY(EditDefaultsOnly, Category = Input)
-	class UInputAction* ia_Move;
-    
-	//이동 속도
-	UPROPERTY(EditDefaultsOnly, Category = PlayerSetting)
-	float walkSpeed = 600.f;
-	
-	UPROPERTY(EditDefaultsOnly, Category="Input")
-	class UInputAction* ia_Jump;
-	
-	void Move(const struct FInputActionValue& inputValue);
-	void InputJump(const struct FInputActionValue& inputValue);
+    UPROPERTY(EditDefaultsOnly, Category = Input)
+    class UInputMappingContext* imc_TPS;
+
+    UPROPERTY(EditDefaultsOnly, Category = Input)
+    class UInputAction* ia_Move;
+
+    UPROPERTY(EditDefaultsOnly, Category = Input)
+    class UInputAction* ia_Jump;
+
+    UPROPERTY(EditDefaultsOnly, Category = Input)
+    class UInputAction* ia_LookUp;
+
+    UPROPERTY(EditDefaultsOnly, Category = Input)
+    class UInputAction* ia_Turn;
+
+    UPROPERTY(EditDefaultsOnly, Category = Input)
+    class UInputAction* ia_Fire;
+
+    // ==================== 플레이어 설정 ====================
+
+    UPROPERTY(EditDefaultsOnly, Category = PlayerSetting)
+    float walkSpeed = 600.f;
+
+    FVector direction;
+
+    // ==================== 팩토리 ====================
+
+    UPROPERTY(EditDefaultsOnly, Category = BulletFactory)
+    TSubclassOf<class ABullet> bulletFactory;
+
+    // ==================== 입력 핸들러 ====================
+
+    void Move(const struct FInputActionValue& inputValue);
+    void InputJump(const struct FInputActionValue& inputValue);
+    void LookUp(const struct FInputActionValue& inputValue);
+    void Turn(const struct FInputActionValue& inputValue);
+    void InputFire(const struct FInputActionValue& inputValue);
 };
