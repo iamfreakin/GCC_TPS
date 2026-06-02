@@ -51,6 +51,12 @@ protected:
 
     UPROPERTY(EditDefaultsOnly, Category = Input)
     class UInputAction* ia_Fire;
+    
+    UPROPERTY(EditDefaultsOnly, Category = Input)
+    class UInputAction* ia_GrenadeGun;
+    
+    UPROPERTY(EditDefaultsOnly, Category = Input)
+    class UInputAction* ia_SniperGun;
 
     // ==================== 플레이어 설정 ====================
 
@@ -58,6 +64,7 @@ protected:
     float walkSpeed = 600.f;
 
     FVector direction;
+    bool bUsingGrenadeGun = true;
 
     // ==================== 팩토리 ====================
 
@@ -71,4 +78,6 @@ protected:
     void LookUp(const struct FInputActionValue& inputValue);
     void Turn(const struct FInputActionValue& inputValue);
     void InputFire(const struct FInputActionValue& inputValue);
+    void ChangeToGrenadeGun(const struct FInputActionValue& inputValue);
+    void ChangeToSniperGun(const struct FInputActionValue& inputValue);
 };  
