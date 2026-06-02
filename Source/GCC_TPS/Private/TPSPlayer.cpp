@@ -18,24 +18,19 @@ ATPSPlayer::ATPSPlayer()
 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 	
-	// 마우스를 돌려도 캐릭터 몸통이 즉시 회전하지 않도록 방지 (TPS 기본)
-	// bUseControllerRotationPitch = false;
-	// bUseControllerRotationYaw = true;
-	// bUseControllerRotationRoll = false;
-
-	// 움직이는 방향으로 캐릭터 몸이 부드럽게 회전하도록 설정
-	GetCharacterMovement()->bOrientRotationToMovement = true; 
-	GetCharacterMovement()->RotationRate = FRotator(0.0f, 500.0f, 0.0f); // 회전 속도
-	
 	// TPS 카메라를 SpringArm 컴포넌트에 부착
-	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArmComponent"));
-	SpringArm->SetupAttachment(RootComponent);
-	SpringArm->SetRelativeLocation(FVector(0.0f, 70.0f, 90.0f));
-	SpringArm->TargetArmLength = 400.0f;
+	springArmComp = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArmComponent"));
+	springArmComp->SetupAttachment(RootComponent); // 계층 구조상 캡슐컴포넌트가 ROOT이며 스프링암을 자식으로 배치
+	springArmComp->SetRelativeLocation(FVector(.0f, 70.0f, 90.0f)); // 암 컴포넌트의 시작점
+	springArmComp->TargetArmLength = 400.f;
 	
-	//카메라 컴포넌트
-	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComponent"));
-	FollowCamera->SetupAttachment(SpringArm);
+	cameraComp = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComponent"));
+	cameraComp->SetupAttachment(springArmComp);
+	
+	// C++에서 BP에서의 옵션들 직접 수정하는 경우 아래처럼 해당 옵션 변수들을 직접 코드로 제어 가능
+	// springArmComp->bUsePawnControlRotation = true;
+	// cameraComp->bUsePawnControlRotation = false;
+	// bUseControllerRotationYaw = true;
 	
 	// 총 스켈레탈메시 컴포넌트 등록
 	gunMeshComp = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("GunMeshComponent"));
@@ -55,7 +50,7 @@ ATPSPlayer::ATPSPlayer()
 	// 캐릭터 메시 컴포넌트(GetMesh()) 부모에 부착
 	sniperGunComp->SetupAttachment(GetMesh());
 	// 스태틱 메시 데이터 동적로드
-	ConstructorHelpers::FObjectFinder<UStaticMesh> TempSniperGunMesh(TEXT("/Script/Engine.StaticMesh'/Game/Weapons/Sniper/Meshes/sniper1.sniper1'"));
+	ConstructorHelpers::FObjectFinder<UStaticMesh> TempSniperGunMesh(TEXT("/Script/Engine.StaticMesh'/Game/Weapons/sniper/source/sniper1.sniper1'"));
 	if (TempSniperGunMesh.Succeeded())
 	{
 		// 해당 경로의 스태틱메시를 찾았다면, 메시 할당 + 임시 위치 보정
@@ -74,7 +69,8 @@ ATPSPlayer::ATPSPlayer()
 void ATPSPlayer::BeginPlay()
 {
 	Super::BeginPlay();
-
+	
+	// Enhanced Input 시스템이 IMC_TPS 사용하도록 설정
 	auto pc = Cast<APlayerController>(Controller);
 	if (pc)
 	{
@@ -89,10 +85,36 @@ void ATPSPlayer::BeginPlay()
 	sniperUI = CreateWidget(GetWorld(), sniperUIFactory);
 }
 
+// Called every frame
+void ATPSPlayer::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+	
+	// 캐릭터 이동처리에서 버그 예시)
+	// GetControlRation() 함수는 좌우(YAW) 말고도 상하(PITCH)까지 포함된 카메라 전체 회전
+	// PITCH 움직임에 X축을 기울이는 성질이 있어서 카메라가 아래를 향하는 상태에서 W를 누르면
+	// "앞으로 가는 입력" + "아래로 박는 입력"으로 섞임 -> 수평 속도가 cos(Pitch)로 줄어듬
+	
+	// 컨트롤러의 현재 회전 값들(YAW, PITCH, ROLL) 값을 가져옴
+	FRotator controlRot = GetControlRotation();
+	// PITCH 자체를 0으로 - 기우는 현상 차단
+	controlRot.Pitch = 0.f;
+	// ROLL 도 0으로 고정 - 기우는 현상 차단
+	controlRot.Roll = 0.f;
+	
+	// YAW좌우 측값만 남은 벡터를 넣어둠 -> 카메라가 어디를 보던지, 이동은 수평면 위에서만 이루어지도록 함
+	direction = FRotationMatrix(controlRot).TransformVector(direction); // 자기를 기준으로 벡터 변환
+	
+	// 언리얼엔진에서 제공하는 위 등속 운동을 구현한 함수 AddMovementInput()
+	AddMovementInput(direction);
+	direction = FVector::ZeroVector;
+}
+
+// Called to bind functionality to input
 void ATPSPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
-
+	
 	auto PlayerInput = CastChecked<UEnhancedInputComponent>(PlayerInputComponent);
 	if (PlayerInput)
 	{
@@ -108,46 +130,29 @@ void ATPSPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent
 	}
 }
 
-// 좌우 회전 입력에 따른 콜백 함수
-void ATPSPlayer::Turn(const FInputActionValue& inputValue)
-{
-	float value = inputValue.Get<float>();
-	AddControllerYawInput(value); // YAW(Z 축) 회전
-}
-
-// 상하 회전 입력에 따른 콜백 함수
+// 상하 회전 입력에 따른 콜백 함수 구현
 void ATPSPlayer::LookUp(const FInputActionValue& inputValue)
 {
 	float value = inputValue.Get<float>();
-	AddControllerPitchInput(value); // PITCH(Y 축) 회전
+	AddControllerPitchInput(value); // PITCH(Y축) 회전
 }
 
-// Called every frame
-void ATPSPlayer::Tick(float DeltaTime)
+// 좌우 회전 입력에 따른 콜백 함수 구현
+void ATPSPlayer::Turn(const FInputActionValue& inputValue)
 {
-	Super::Tick(DeltaTime);
-	
-	//컨트롤러의 현재 회전 값들 (Yaw, Pitch, Roll)값을 가져옴
-	FRotator controlRot = GetControlRotation();
-	//Pitch자체를 0으로 설정 -> 기우는 현상 차단 -> 일정속도 이동
-	controlRot.Pitch = 0.0f;
-	controlRot.Roll = 0.0f;
-	//원래도 0이긴함 -> 카메라 움직임에 따라에도 움직일 가능성 존재하여 사전 차단
-    
-	//Yaw 좌우 측값만 남은 벡터에 입력 -> 카메라의 회전과 관계엾이 수평면 위에서만 이동
-	direction = FTransform(GetControlRotation()).TransformFVector4(direction);
-	AddMovementInput(direction);
-	direction = FVector::ZeroVector;
+	float value = inputValue.Get<float>();
+	AddControllerYawInput(value); // YAW(Z축) 회전
 }
 
-void ATPSPlayer::Move(const FInputActionValue& Value)
+// 전후좌우 이동 입력에 따른 콜백 함수 구현
+void ATPSPlayer::Move(const FInputActionValue& inputValue)
 {
-	FVector2D value = Value.Get<FVector2D>();
-
-	direction.X = value.X;
-	direction.Y = value.Y;
+	FVector2D value = inputValue.Get<FVector2D>(); // 전달받는 2D 값
+	direction.X = value.X; // 전후
+	direction.Y = value.Y; // 좌우
 }
 
+// 점프 입력에 따른 콜백 함수 구현
 void ATPSPlayer::InputJump(const FInputActionValue& inputValue)
 {
 	Jump(); // ACharacter 클래스가 제공하는 기본 점프 함수 호출
@@ -188,19 +193,19 @@ void ATPSPlayer::SniperZoom()
 	{
 		return;
 	}
-
+	
 	if (bSniperZoom == false)
 	{
 		// 키 누름 - 줌 모드에 진입
 		bSniperZoom = true;
 		sniperUI->AddToViewport(); // 조준경 UI 화면에 나타남
-		FollowCamera->SetFieldOfView(45.f); // FOV 시야각을 좁혀서 줌인 효과
+		cameraComp->SetFieldOfView(45.f); // FOV 시야각을 좁혀서 줌인 효과
 	}
 	else
 	{
 		// 키 해제 - 줌 모드에서 해제
 		bSniperZoom = false;
 		sniperUI->RemoveFromParent(); // 조준경 UI 제거
-		FollowCamera->SetFieldOfView(90.f); // FOX 시야각 복구
+		cameraComp->SetFieldOfView(90.f); // FOX 시야각 복구
 	}
 }

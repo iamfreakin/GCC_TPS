@@ -26,15 +26,15 @@ public:
 	// 발사체 이동을 담당할 컴포넌트 선언
 	UPROPERTY(VisibleAnywhere, Category = Movement)
 	class UProjectileMovementComponent* movementComp;
-
+	
 	// 충돌 컴포넌트 선언
 	UPROPERTY(VisibleAnywhere, Category = Collision)
 	class USphereComponent* collisionComp;
-
+	
 	// 외관 컴포넌트 선언
 	UPROPERTY(VisibleAnywhere, Category = BodyMesh)
 	class UStaticMeshComponent* bodyMeshComp;
 	
-	// 총알 제거
+	// 총알 제거 함수 선언
 	void Die();
 };

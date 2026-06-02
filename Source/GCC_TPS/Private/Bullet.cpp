@@ -13,7 +13,7 @@ ABullet::ABullet()
 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 	
-	// 충돌체 등록
+	// 충돌체 컴포넌트 등록
 	collisionComp = CreateDefaultSubobject<USphereComponent>(TEXT("Collision Component"));
 	// 충돌 프로필 설정(모든 물체에 튕김)
 	collisionComp->SetCollisionProfileName(TEXT("BlockAll"));
@@ -45,13 +45,15 @@ ABullet::ABullet()
 	movementComp->Bounciness = 0.3f;
 	
 	// 객체 생명 시간 제어(초 단위)
-	InitialLifeSpan = 2.0f;
+	// InitialLifeSpan = 2.f;
 }
 
 // Called when the game starts or when spawned
 void ABullet::BeginPlay()
 {
 	Super::BeginPlay();
+	
+	// 타이머에 알람 등록
 	// SetTimer(핸들러, 대상 객체, 호출함수 포인터, 시간, 반복여부)
 	FTimerHandle deathTimer;
 	GetWorldTimerManager().SetTimer(deathTimer, this, &ABullet::Die, 2.f, false);
@@ -63,8 +65,8 @@ void ABullet::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 }
 
+// 총알 소멸 함수 - 타이머 시간이 다 되면 호출됨
 void ABullet::Die()
 {
 	Destroy();
 }
-
