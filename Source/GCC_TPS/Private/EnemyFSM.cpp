@@ -3,6 +3,10 @@
 
 #include "EnemyFSM.h"
 
+#include "Enemy.h"
+#include "TPSPlayer.h"
+#include "Kismet/GameplayStatics.h"
+
 
 // Sets default values for this component's properties
 UEnemyFSM::UEnemyFSM()
@@ -19,8 +23,13 @@ UEnemyFSM::UEnemyFSM()
 void UEnemyFSM::BeginPlay()
 {
 	Super::BeginPlay();
-
-	// ...
+	
+	// 월드에서 ATPSPlayer 타겟 찾기
+	auto actor = UGameplayStatics::GetActorOfClass(GetWorld(), ATPSPlayer::StaticClass());
+	// 찾은 actor를 ATPSPlayer 타입으로 캐스팅
+	target = Cast<ATPSPlayer>(actor);
+	// 소유 객체
+	me = Cast<AEnemy>(GetOwner());
 	
 }
 
@@ -66,7 +75,18 @@ void UEnemyFSM::IdleState()
 // 추적 상태 - 플레이어 방향으로 이동, 공격 범위 진입 시 공격 상태로 전환
 void UEnemyFSM::MoveState()
 {
-	
+	// 타겟 목적지 설정
+	FVector destination = target->GetActorLocation();
+	// 타겟 방향 설정
+	FVector dir = destination - me->GetActorLocation();
+	// 타겟 방향으로 이동
+	me->AddMovementInput(dir.GetSafeNormal());
+
+	// Attack 상태로 전환 (공격범위 안으로 들어오면)
+	if (dir.Size() < attackRange)
+	{
+		mState = EEnemyState::Attack;
+	}
 }
 
 // 공격 상태 - 일정 주기로 공격, 플레이어가 범위 이탈 시 추적으로 전환
