@@ -80,4 +80,8 @@ public:
 	// 피격 대기 시간(경직)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = FSM)
 	float damageDelayTime = 1.f;
+	
+	// 아래로 사라지는 속도
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = FSM)
+	float dieTime = 40.f;
 };
