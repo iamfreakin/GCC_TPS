@@ -3,6 +3,8 @@
 
 #include "Enemy.h"
 
+#include "EnemyFSM.h"
+
 
 // Sets default values
 AEnemy::AEnemy()
@@ -18,6 +20,9 @@ AEnemy::AEnemy()
 		// 메시 위치/회전 보정
 		GetMesh()->SetRelativeLocationAndRotation(FVector(0.f,0.f,-88.f), FRotator(0.f,-90,0.f));
 	}
+	
+	// FSM 컴포넌트 등록 - 적에게 상태관리 두뇌를 부착
+	fsm = CreateDefaultSubobject<UEnemyFSM>(TEXT("FSM"));
 }
 
 // Called when the game starts or when spawned
