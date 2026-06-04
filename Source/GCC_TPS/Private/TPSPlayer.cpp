@@ -207,6 +207,20 @@ void ATPSPlayer::InputFire(const FInputActionValue& inputValue)
 			
 			// 타격 위치에 Niagara 이펙트 스폰
 			UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), bulletEffectFactory, hitResult.ImpactPoint);
+		
+			// 타격 물체에 물리 엔진 적용
+			UPrimitiveComponent* hitComp = hitResult.GetComponent();
+			if (hitComp && hitComp->IsSimulatingPhysics())
+			{
+				// 1. 조준 방향 - 시작점에서 종료점 방향
+				FVector dir = (endPos - startPos).GetSafeNormal();
+				// 2. 날려보낼 힘 (F=MA 방향 * 질량 * 가속도)				
+				FVector force = dir * hitComp->GetMass() * 20000.f;
+				// 3. 타격된 지점에 힘을 적용
+				// AddForce(F) - 무게중심에 힘을 적용 -> 회전없고, 평행이동
+				// AddForceAtLocation(F, pos) - 특정 위치에 힘-> 회전(토크)가 발생한다. ex: 모서리 맞으면 빙글빙글 돌면서 뒤로밀림;
+				hitComp->AddForceAtLocation(force, hitResult.ImpactPoint);
+			}
 		}
 	}
 }
