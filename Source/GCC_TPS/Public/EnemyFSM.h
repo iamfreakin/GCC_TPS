@@ -69,4 +69,6 @@ public:
 	// 공격 대기 시간
 	UPROPERTY(EditDefaultsOnly, Category = FSM)
 	float attackDelayTime = 1.f;
+	
+	//
 };
